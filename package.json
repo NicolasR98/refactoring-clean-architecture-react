@@ -11,7 +11,7 @@
         "preview": "vite preview",
         "test": "vitest run",
         "test-watch": "vitest watch",
-        "prepare": "husky install"
+        "prepare": "husky"
     },
     "dependencies": {
         "@emotion/react": "^11.11.1",

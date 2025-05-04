@@ -1,0 +1,1 @@
+pnpm prettify && pnpm lint && pnpm test
