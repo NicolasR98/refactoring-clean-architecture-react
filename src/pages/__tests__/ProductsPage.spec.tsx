@@ -5,5 +5,5 @@ import App from "../../App";
 test("should display title", () => {
     render(<App />);
 
-    screen.findByRole("heading", { name: "Product price updater" });
+    screen.getByRole("heading", { name: "Product price updater" });
 });
