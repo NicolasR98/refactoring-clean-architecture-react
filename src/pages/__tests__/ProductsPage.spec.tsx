@@ -19,17 +19,16 @@ describe("<ProductsPage />", () => {
         renderComponent(<ProductsPage />);
         await screen.findByRole("heading", { name: "Product price updater" });
     });
-    
+
     test("should display an empty table if no data", async () => {
         givenNoProducts(mockWebServer);
         renderComponent(<ProductsPage />);
         const rows = await screen.findAllByRole("row");
 
-        expect(rows.length).toBe(1)
-        verifyHeader(rows[0])
+        expect(rows.length).toBe(1);
+        verifyHeader(rows[0]);
     });
 });
-
 
 function renderComponent(component: ReactNode): RenderResult {
     return render(<AppProvider>{component}</AppProvider>);
