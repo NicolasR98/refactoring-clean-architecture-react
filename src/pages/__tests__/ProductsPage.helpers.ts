@@ -1,6 +1,7 @@
 import { screen, waitFor, within } from "@testing-library/react";
-import { RemoteProduct } from "../../api/StoreApi";
+import userEvent from "@testing-library/user-event";
 import { expect } from "vitest";
+import { RemoteProduct } from "../../api/StoreApi";
 
 export function verifyHeader(headerRow: HTMLElement): void {
     const headerScope = within(headerRow);
@@ -39,4 +40,32 @@ export async function waitTableToBeLoaded(): Promise<void> {
     await waitFor(async () => {
         expect((await screen.findAllByRole("row")).length).toBeGreaterThan(1);
     });
+}
+
+export async function openDialog(index: number): Promise<HTMLElement> {
+    // Get selected row
+    const [, ...rows] = await screen.findAllByRole("row");
+    const selectedRowScope = within(rows[index]);
+
+    // Click on menus to open dialog
+    await userEvent.click(selectedRowScope.getByRole("menuitem"));
+    const updatePriceMenu = await screen.findByRole("menuitem", { name: /update price/i });
+    await userEvent.click(updatePriceMenu);
+
+    // Find and return dialog
+    return await screen.findByRole("dialog");
+}
+
+export function verifyDialog(dialog: HTMLElement, product: RemoteProduct) {
+    const dialogScope = within(dialog);
+
+    // Check image
+    const image: HTMLImageElement = dialogScope.getByRole("img");
+    expect(image.src).toBe(product.image);
+
+    // Check title
+    dialogScope.getByText(product.title);
+
+    // Check price
+    dialogScope.getByDisplayValue(product.price.toFixed(2));
 }
