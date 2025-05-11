@@ -1,10 +1,11 @@
 import { render, RenderResult, screen } from "@testing-library/react";
 import { ReactNode } from "react";
-import { afterAll, afterEach, beforeAll, describe, test } from "vitest";
+import { afterAll, afterEach, beforeAll, describe, expect, test } from "vitest";
 import { AppProvider } from "../../context/AppProvider";
-import { ProductsPage } from "../ProductsPage";
 import { MockWebServer } from "../../tests/MockWebServer";
-import productResponseJSON from "../__tests__/data/productsResponse.json";
+import { ProductsPage } from "../ProductsPage";
+import { givenNoProducts, givenProducts } from "./ProductsPage.fixture";
+import { verifyHeader } from "./ProductsPage.helpers";
 
 const mockWebServer = new MockWebServer();
 
@@ -14,22 +15,21 @@ describe("<ProductsPage />", () => {
     afterAll(() => mockWebServer.close());
 
     test("should display title", async () => {
-        givenProducts();
+        givenProducts(mockWebServer);
         renderComponent(<ProductsPage />);
         await screen.findByRole("heading", { name: "Product price updater" });
     });
+    
+    test("should display an empty table if no data", async () => {
+        givenNoProducts(mockWebServer);
+        renderComponent(<ProductsPage />);
+        const rows = await screen.findAllByRole("row");
+
+        expect(rows.length).toBe(1)
+        verifyHeader(rows[0])
+    });
 });
 
-function givenProducts() {
-    mockWebServer.addRequestHandlers([
-        {
-            method: "get",
-            endpoint: "https://fakestoreapi.com/products",
-            httpStatusCode: 200,
-            response: productResponseJSON,
-        },
-    ]);
-}
 
 function renderComponent(component: ReactNode): RenderResult {
     return render(<AppProvider>{component}</AppProvider>);
