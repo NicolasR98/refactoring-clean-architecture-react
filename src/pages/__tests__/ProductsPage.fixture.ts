@@ -1,7 +1,8 @@
+import { RemoteProduct } from "../../api/StoreApi";
 import { MockWebServer } from "../../tests/MockWebServer";
 import productResponseJSON from "../__tests__/data/productsResponse.json";
 
-export function givenProducts(mockWebServer: MockWebServer) {
+export function givenProducts(mockWebServer: MockWebServer): RemoteProduct[] {
     mockWebServer.addRequestHandlers([
         {
             method: "get",
@@ -10,6 +11,8 @@ export function givenProducts(mockWebServer: MockWebServer) {
             response: productResponseJSON,
         },
     ]);
+
+    return productResponseJSON;
 }
 
 export function givenNoProducts(mockWebServer: MockWebServer) {
