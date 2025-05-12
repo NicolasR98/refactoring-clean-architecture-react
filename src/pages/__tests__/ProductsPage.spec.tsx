@@ -7,7 +7,9 @@ import { ProductsPage } from "../ProductsPage";
 import { givenNoProducts, givenProducts } from "./ProductsPage.fixture";
 import {
     openDialog,
+    typePrice,
     verifyDialog,
+    verifyError,
     verifyHeader,
     verifyRows,
     waitTableToBeLoaded,
@@ -57,6 +59,42 @@ describe("<ProductsPage />", () => {
 
             const dialog = await openDialog(productIndex);
             verifyDialog(dialog, products[productIndex]);
+        });
+
+        test("should display an error when introducing a negative price", async () => {
+            givenProducts(mockWebServer);
+            const productIndex = 1;
+            renderComponent(<ProductsPage />);
+            await waitTableToBeLoaded();
+
+            const dialog = await openDialog(productIndex);
+
+            await typePrice(dialog, "-100");
+            await verifyError(dialog, "Invalid price format");
+        });
+
+        test("should display an error when introducing non numeric value", async () => {
+            givenProducts(mockWebServer);
+            const productIndex = 1;
+            renderComponent(<ProductsPage />);
+            await waitTableToBeLoaded();
+
+            const dialog = await openDialog(productIndex);
+
+            await typePrice(dialog, "hello world");
+            await verifyError(dialog, "Only numbers are allowed");
+        });
+
+        test("should display an error when introducing value greater than max", async () => {
+            givenProducts(mockWebServer);
+            const productIndex = 1;
+            renderComponent(<ProductsPage />);
+            await waitTableToBeLoaded();
+
+            const dialog = await openDialog(productIndex);
+
+            await typePrice(dialog, "10000");
+            await verifyError(dialog, "The max possible price is 999.99");
         });
     });
 });

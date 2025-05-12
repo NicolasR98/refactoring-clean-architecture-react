@@ -69,3 +69,17 @@ export function verifyDialog(dialog: HTMLElement, product: RemoteProduct) {
     // Check price
     dialogScope.getByDisplayValue(product.price.toFixed(2));
 }
+
+export async function typePrice(dialog: HTMLElement, price: string): Promise<void> {
+    const dialogScope = within(dialog);
+    const priceField = dialogScope.getByRole("textbox", { name: "Price" });
+
+    await userEvent.clear(priceField);
+    await userEvent.type(priceField, price);
+}
+
+export async function verifyError(dialog: HTMLElement, error: string): Promise<void> {
+    const dialogScope = within(dialog);
+
+    await dialogScope.findByText(error);
+}
