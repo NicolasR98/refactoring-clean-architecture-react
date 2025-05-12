@@ -83,3 +83,22 @@ export async function verifyError(dialog: HTMLElement, error: string): Promise<v
 
     await dialogScope.findByText(error);
 }
+
+export async function savePrice(dialog: HTMLElement): Promise<void> {
+    const dialogScope = within(dialog);
+
+    await userEvent.click(dialogScope.getByRole("button", { name: /save/i }));
+}
+
+export async function verifyProductRowPriceAndStatus(
+    index: number,
+    price: string,
+    status: string
+): Promise<void> {
+    const [, ...rows] = await screen.findAllByRole("row");
+    const rowScope = within(rows[index]);
+    const cells = rowScope.getAllByRole("cell");
+
+    within(cells[3]).getByText(`$${Number(price).toFixed(2)}`);
+    within(cells[4]).getByText(status);
+}
