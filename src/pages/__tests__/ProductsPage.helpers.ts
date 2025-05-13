@@ -108,3 +108,9 @@ export async function changeToNonAdminUser(): Promise<void> {
     await userEvent.click(screen.getByRole("button", { name: /user: admin user/i }));
     await userEvent.click(screen.getByRole("menuitem", { name: /non admin user/i }));
 }
+
+export async function veryfySaveButtonIsDisabled(dialog: HTMLElement): Promise<void> {
+    const dialogScope = within(dialog);
+
+    expect(dialogScope.getByRole("button", { name: /save/i }).closest("button")).toBeDisabled();
+}

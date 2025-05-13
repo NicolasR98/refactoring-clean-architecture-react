@@ -16,6 +16,7 @@ import {
     verifyHeader,
     verifyProductRowPriceAndStatus,
     verifyRows,
+    veryfySaveButtonIsDisabled,
     waitTableToBeLoaded,
 } from "./ProductsPage.helpers";
 
@@ -75,6 +76,7 @@ describe("<ProductsPage />", () => {
 
             await typePrice(dialog, "-100");
             await verifyError(dialog, "Invalid price format");
+            await veryfySaveButtonIsDisabled(dialog);
         });
 
         test("should display an error when introducing non numeric value", async () => {
@@ -87,6 +89,7 @@ describe("<ProductsPage />", () => {
 
             await typePrice(dialog, "hello world");
             await verifyError(dialog, "Only numbers are allowed");
+            await veryfySaveButtonIsDisabled(dialog);
         });
 
         test("should display an error when introducing value greater than max", async () => {
@@ -99,6 +102,7 @@ describe("<ProductsPage />", () => {
 
             await typePrice(dialog, "10000");
             await verifyError(dialog, "The max possible price is 999.99");
+            await veryfySaveButtonIsDisabled(dialog);
         });
 
         test("should edit price correctly and change status to active if price is greater than 0", async () => {
