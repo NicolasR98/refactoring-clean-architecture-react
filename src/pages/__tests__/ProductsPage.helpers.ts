@@ -43,16 +43,8 @@ export async function waitTableToBeLoaded(): Promise<void> {
 }
 
 export async function openDialog(index: number): Promise<HTMLElement> {
-    // Get selected row
-    const [, ...rows] = await screen.findAllByRole("row");
-    const selectedRowScope = within(rows[index]);
+    await tryOpenDialog(index);
 
-    // Click on menus to open dialog
-    await userEvent.click(selectedRowScope.getByRole("menuitem"));
-    const updatePriceMenu = await screen.findByRole("menuitem", { name: /update price/i });
-    await userEvent.click(updatePriceMenu);
-
-    // Find and return dialog
     return await screen.findByRole("dialog");
 }
 
@@ -101,4 +93,18 @@ export async function verifyProductRowPriceAndStatus(
 
     within(cells[3]).getByText(`$${Number(price).toFixed(2)}`);
     within(cells[4]).getByText(status);
+}
+
+export async function tryOpenDialog(index: number): Promise<void> {
+    const [, ...rows] = await screen.findAllByRole("row");
+    const selectedRowScope = within(rows[index]);
+
+    await userEvent.click(selectedRowScope.getByRole("menuitem"));
+    const updatePriceMenu = await screen.findByRole("menuitem", { name: /update price/i });
+    await userEvent.click(updatePriceMenu);
+}
+
+export async function changeToNonAdminUser(): Promise<void> {
+    await userEvent.click(screen.getByRole("button", { name: /user: admin user/i }));
+    await userEvent.click(screen.getByRole("menuitem", { name: /non admin user/i }));
 }
