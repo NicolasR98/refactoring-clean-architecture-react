@@ -1,24 +1,10 @@
-import { RemoteProduct, StoreApi } from "../data/api/StoreApi";
 import { Product } from "./Product";
+import { ProductRepository } from "./ProductsRepository";
 
 export class GetProductsUseCase {
-    constructor(private storeApi: StoreApi) {}
+    constructor(private productsRepository: ProductRepository) {}
 
     async execute(): Promise<Product[]> {
-        const productsReponse = await this.storeApi.getAll();
-        return productsReponse.map(buildProduct);
+        return await this.productsRepository.getAll();
     }
-}
-
-// FIXME: Product mapping
-export function buildProduct(remoteProduct: RemoteProduct): Product {
-    return {
-        id: remoteProduct.id,
-        title: remoteProduct.title,
-        image: remoteProduct.image,
-        price: remoteProduct.price.toLocaleString("en-US", {
-            maximumFractionDigits: 2,
-            minimumFractionDigits: 2,
-        }),
-    };
 }

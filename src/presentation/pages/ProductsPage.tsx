@@ -8,7 +8,8 @@ import {
 } from "@mui/x-data-grid";
 import { ChangeEvent, useCallback, useMemo, useState } from "react";
 import { StoreApi } from "../../data/api/StoreApi";
-import { buildProduct, GetProductsUseCase } from "../../domain/GetProductsUseCase";
+import { buildProduct, ProductApiRepository } from "../../data/ProductsApiRepository";
+import { GetProductsUseCase } from "../../domain/GetProductsUseCase";
 import { Product } from "../../domain/Product";
 import { ConfirmationDialog } from "../components/ConfirmationDialog";
 import { Footer } from "../components/Footer";
@@ -24,7 +25,8 @@ const baseColumn: Partial<GridColDef<Product>> = {
 const storeApi = new StoreApi();
 
 function createGetProductsUseCase(): GetProductsUseCase {
-    return new GetProductsUseCase(storeApi);
+    const productsRepository = new ProductApiRepository(storeApi);
+    return new GetProductsUseCase(productsRepository);
 }
 
 export const ProductsPage: React.FC = () => {
