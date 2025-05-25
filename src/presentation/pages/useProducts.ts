@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { RemoteProduct, StoreApi } from "../api/StoreApi";
+import { RemoteProduct, StoreApi } from "../../data/api/StoreApi";
 import { useReload } from "../hooks/useReload";
 
 export interface Product {
@@ -13,7 +13,6 @@ export function useProducts(storeApi: StoreApi) {
     const [products, setProducts] = useState<Product[]>([]);
     const [reloadKey, reload] = useReload();
 
-
     useEffect(() => {
         storeApi.getAll().then(response => {
             console.debug("Reloading", reloadKey);
@@ -26,7 +25,7 @@ export function useProducts(storeApi: StoreApi) {
         });
     }, [reloadKey, storeApi]);
 
-    return {products, reload}
+    return { products, reload };
 }
 
 // FIXME: Product mapping

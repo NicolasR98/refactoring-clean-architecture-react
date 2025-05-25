@@ -1,7 +1,7 @@
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { expect } from "vitest";
-import { RemoteProduct } from "../../api/StoreApi";
+import { RemoteProduct } from "../../../data/api/StoreApi";
 
 export function verifyHeader(headerRow: HTMLElement): void {
     const headerScope = within(headerRow);
