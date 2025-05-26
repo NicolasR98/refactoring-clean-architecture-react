@@ -9,6 +9,11 @@ export class ProductApiRepository implements ProductRepository {
         const productsReponse = await this.storeApi.getAll();
         return productsReponse.map(buildProduct);
     }
+
+    async getById(productId: number): Promise<Product> {
+        const productResponse = await this.storeApi.get(productId);
+        return buildProduct(productResponse);
+    }
 }
 
 // FIXME: Product mapping

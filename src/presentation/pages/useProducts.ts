@@ -1,11 +1,15 @@
 import { useCallback, useEffect, useState } from "react";
-import { RemoteProduct, StoreApi } from "../../data/api/StoreApi";
+import { RemoteProduct } from "../../data/api/StoreApi";
+import { GetProductByIdUseCase, ResourceNotFoundError } from "../../domain/GetProductByIdUseCase";
 import { GetProductsUseCase } from "../../domain/GetProductsUseCase";
 import { Product } from "../../domain/Product";
 import { useAppContext } from "../context/useAppContext";
 import { useReload } from "../hooks/useReload";
 
-export function useProducts(getProductsUseCase: GetProductsUseCase, storeApi: StoreApi) {
+export function useProducts(
+    getProductsUseCase: GetProductsUseCase,
+    getProducByIdUseCase: GetProductByIdUseCase
+) {
     const { currentUser } = useAppContext();
 
     const [products, setProducts] = useState<Product[]>([]);
@@ -21,7 +25,6 @@ export function useProducts(getProductsUseCase: GetProductsUseCase, storeApi: St
         });
     }, [getProductsUseCase, reloadKey]);
 
-    // FIXME: Load product
     // FIXME: User validation
     const updatingQuantity = useCallback(
         async (id: number) => {
@@ -31,18 +34,19 @@ export function useProducts(getProductsUseCase: GetProductsUseCase, storeApi: St
                     return;
                 }
 
-                storeApi
-                    .get(id)
-                    .then(buildProduct)
-                    .then(product => {
-                        setEditingProduct(product);
-                    })
-                    .catch(() => {
-                        setError(`Product with id ${id} not found`);
-                    });
+                try {
+                    const product = await getProducByIdUseCase.execute(id);
+                    setEditingProduct(product);
+                } catch (error) {
+                    if (error instanceof ResourceNotFoundError) {
+                        setError(error.message);
+                    } else {
+                        setError("Unexpected error has occurred");
+                    }
+                }
             }
         },
-        [currentUser.isAdmin, storeApi]
+        [currentUser.isAdmin, getProducByIdUseCase]
     );
 
     // FIXME: Close dialog

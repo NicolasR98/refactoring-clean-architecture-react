@@ -9,6 +9,7 @@ import {
 import { ChangeEvent, useEffect, useMemo, useState } from "react";
 import { StoreApi } from "../../data/api/StoreApi";
 import { ProductApiRepository } from "../../data/ProductsApiRepository";
+import { GetProductByIdUseCase } from "../../domain/GetProductByIdUseCase";
 import { GetProductsUseCase } from "../../domain/GetProductsUseCase";
 import { Product } from "../../domain/Product";
 import { ConfirmationDialog } from "../components/ConfirmationDialog";
@@ -28,6 +29,11 @@ function createGetProductsUseCase(): GetProductsUseCase {
     return new GetProductsUseCase(productsRepository);
 }
 
+function createGetProductByIdUseCase(): GetProductByIdUseCase {
+    const productsRepository = new ProductApiRepository(storeApi);
+    return new GetProductByIdUseCase(productsRepository);
+}
+
 export const ProductsPage: React.FC = () => {
     /**
      * @deprecated use error and setError instead
@@ -38,6 +44,7 @@ export const ProductsPage: React.FC = () => {
     const [priceError, setPriceError] = useState<string | undefined>(undefined);
 
     const getProductsUseCase = useMemo(() => createGetProductsUseCase(), []);
+    const getProductByIdUseCase = useMemo(() => createGetProductByIdUseCase(), []);
 
     const {
         products,
@@ -47,7 +54,7 @@ export const ProductsPage: React.FC = () => {
         updatingQuantity,
         cancelEditPrice,
         setEditingProduct,
-    } = useProducts(getProductsUseCase, storeApi);
+    } = useProducts(getProductsUseCase, getProductByIdUseCase);
 
     useEffect(() => setSnackBarError(error), [error]);
     // FIXME: Price validation
