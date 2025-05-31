@@ -15,6 +15,7 @@ export function useProducts(
     const [products, setProducts] = useState<Product[]>([]);
     const [editingProduct, setEditingProduct] = useState<Product | undefined>(undefined);
     const [error, setError] = useState<string>();
+    const [priceError, setPriceError] = useState<string | undefined>(undefined);
 
     const [reloadKey, reload] = useReload();
 
@@ -24,6 +25,25 @@ export function useProducts(
             setProducts(products);
         });
     }, [getProductsUseCase, reloadKey]);
+
+    function onChangePrice(price: string): void {
+        if (!editingProduct) return;
+
+        const isValidNumber = !isNaN(+price);
+        setEditingProduct({ ...editingProduct, price: price });
+
+        if (!isValidNumber) {
+            setPriceError("Only numbers are allowed");
+        } else {
+            if (!PRICE_REGEX.test(price)) {
+                setPriceError("Invalid price format");
+            } else if (+price > 999.99) {
+                setPriceError("The max possible price is 999.99");
+            } else {
+                setPriceError(undefined);
+            }
+        }
+    }
 
     // FIXME: User validation
     const updatingQuantity = useCallback(
@@ -58,10 +78,12 @@ export function useProducts(
         products,
         editingProduct,
         error,
+        priceError,
         reload,
         updatingQuantity,
         cancelEditPrice,
         setEditingProduct,
+        onChangePrice,
     };
 }
 
@@ -77,3 +99,5 @@ export function buildProduct(remoteProduct: RemoteProduct): Product {
         }),
     };
 }
+
+const PRICE_REGEX = /^\d+(\.\d{1,2})?$/;
