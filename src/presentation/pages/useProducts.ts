@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { RemoteProduct } from "../../data/api/StoreApi";
 import { GetProductByIdUseCase, ResourceNotFoundError } from "../../domain/GetProductByIdUseCase";
 import { GetProductsUseCase } from "../../domain/GetProductsUseCase";
+import { Price, ValidationError } from "../../domain/Price";
 import { Product } from "../../domain/Product";
 import { useAppContext } from "../context/useAppContext";
 import { useReload } from "../hooks/useReload";
@@ -29,18 +30,15 @@ export function useProducts(
     function onChangePrice(price: string): void {
         if (!editingProduct) return;
 
-        const isValidNumber = !isNaN(+price);
-        setEditingProduct({ ...editingProduct, price: price });
-
-        if (!isValidNumber) {
-            setPriceError("Only numbers are allowed");
-        } else {
-            if (!PRICE_REGEX.test(price)) {
-                setPriceError("Invalid price format");
-            } else if (+price > 999.99) {
-                setPriceError("The max possible price is 999.99");
+        try {
+            setEditingProduct({ ...editingProduct, price: price });
+            Price.create(price);
+            setPriceError(undefined);
+        } catch (error) {
+            if (error instanceof ValidationError) {
+                setPriceError(error.message);
             } else {
-                setPriceError(undefined);
+                setPriceError("Unexpected error has occurred");
             }
         }
     }
@@ -99,5 +97,3 @@ export function buildProduct(remoteProduct: RemoteProduct): Product {
         }),
     };
 }
-
-const PRICE_REGEX = /^\d+(\.\d{1,2})?$/;
