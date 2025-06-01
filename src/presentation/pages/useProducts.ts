@@ -1,15 +1,14 @@
 import { useCallback, useEffect, useState } from "react";
-import { RemoteProduct } from "../../data/api/StoreApi";
 import { GetProductByIdUseCase, ResourceNotFoundError } from "../../domain/GetProductByIdUseCase";
 import { GetProductsUseCase } from "../../domain/GetProductsUseCase";
 import { Price, ValidationError } from "../../domain/Price";
-import { Product } from "../../domain/Product";
+import { Product, ProductData, ProductStatus } from "../../domain/Product";
 import { useAppContext } from "../context/useAppContext";
 import { useReload } from "../hooks/useReload";
 
-export type ProductStatus = "active" | "inactive";
 
-export type ProductViewModel = Product & { status: ProductStatus };
+
+export type ProductViewModel = ProductData & { status: ProductStatus };
 
 export function useProducts(
     getProductsUseCase: GetProductsUseCase,
@@ -89,22 +88,9 @@ export function useProducts(
     };
 }
 
-// FIXME: Product mapping
-export function buildProduct(remoteProduct: RemoteProduct): Product {
-    return {
-        id: remoteProduct.id,
-        title: remoteProduct.title,
-        image: remoteProduct.image,
-        price: remoteProduct.price.toLocaleString("en-US", {
-            maximumFractionDigits: 2,
-            minimumFractionDigits: 2,
-        }),
-    };
-}
-
 export function buildProductViewModel(product: Product): ProductViewModel {
     return {
         ...product,
-        status: +product.price === 0 ? "inactive" : "active",
+        price: product.price.value.toFixed(2),
     };
 }

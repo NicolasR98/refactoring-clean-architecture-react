@@ -8,10 +8,11 @@ import {
 } from "@mui/x-data-grid";
 import { ChangeEvent, useEffect, useMemo, useState } from "react";
 import { CompositionRoot } from "../../CompositionRoot";
+import { ProductStatus } from "../../domain/Product";
 import { ConfirmationDialog } from "../components/ConfirmationDialog";
 import { Footer } from "../components/Footer";
 import { MainAppBar } from "../components/MainAppBar";
-import { ProductStatus, ProductViewModel, useProducts } from "./useProducts";
+import { ProductViewModel, useProducts } from "./useProducts";
 
 const baseColumn: Partial<GridColDef<ProductViewModel>> = {
     disableColumnMenu: true,
