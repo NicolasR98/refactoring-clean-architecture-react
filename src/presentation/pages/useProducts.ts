@@ -3,22 +3,27 @@ import { GetProductByIdUseCase, ResourceNotFoundError } from "../../domain/GetPr
 import { GetProductsUseCase } from "../../domain/GetProductsUseCase";
 import { Price, ValidationError } from "../../domain/Price";
 import { Product, ProductData, ProductStatus } from "../../domain/Product";
+import {
+    ActionNotAllowerError,
+    UpdateProductPriceUseCase,
+} from "../../domain/UpdateProductPriceUseCase";
 import { useAppContext } from "../context/useAppContext";
 import { useReload } from "../hooks/useReload";
 
-
+export type Message = { type: "error" | "success"; message: string };
 
 export type ProductViewModel = ProductData & { status: ProductStatus };
 
 export function useProducts(
     getProductsUseCase: GetProductsUseCase,
-    getProducByIdUseCase: GetProductByIdUseCase
+    getProducByIdUseCase: GetProductByIdUseCase,
+    updateProductPriceUseCase: UpdateProductPriceUseCase
 ) {
     const { currentUser } = useAppContext();
 
     const [products, setProducts] = useState<ProductViewModel[]>([]);
     const [editingProduct, setEditingProduct] = useState<ProductViewModel | undefined>(undefined);
-    const [error, setError] = useState<string>();
+    const [message, setMessage] = useState<Message | undefined>();
     const [priceError, setPriceError] = useState<string | undefined>(undefined);
 
     const [reloadKey, reload] = useReload();
@@ -51,7 +56,10 @@ export function useProducts(
         async (id: number) => {
             if (id) {
                 if (!currentUser.isAdmin) {
-                    setError("Only admin users can edit the price of a product");
+                    setMessage({
+                        type: "error",
+                        message: "Only admin users can edit the price of a product",
+                    });
                     return;
                 }
 
@@ -60,9 +68,9 @@ export function useProducts(
                     setEditingProduct(buildProductViewModel(product));
                 } catch (error) {
                     if (error instanceof ResourceNotFoundError) {
-                        setError(error.message);
+                        setMessage({ type: "error", message: error.message });
                     } else {
-                        setError("Unexpected error has occurred");
+                        setMessage({ type: "error", message: "Unexpected error has occurred" });
                     }
                 }
             }
@@ -70,21 +78,56 @@ export function useProducts(
         [currentUser.isAdmin, getProducByIdUseCase]
     );
 
-    // FIXME: Close dialog
     const cancelEditPrice = useCallback(() => {
         setEditingProduct(undefined);
     }, []);
 
+    const onCloseMessage = useCallback(() => {
+        setMessage(undefined);
+    }, []);
+
+    async function saveEditPrice(): Promise<void> {
+        if (!editingProduct) return;
+
+        try {
+            await updateProductPriceUseCase.execute(
+                currentUser,
+                editingProduct.id,
+                editingProduct.price
+            );
+            setMessage({
+                type: "success",
+                message: `Price ${editingProduct.price} for '${editingProduct.title}' updated`,
+            });
+            setEditingProduct(undefined);
+            reload();
+        } catch (error) {
+            if (error instanceof ActionNotAllowerError) {
+                setMessage({
+                    type: "error",
+                    message: error.message,
+                });
+            } else {
+                setMessage({
+                    type: "error",
+                    message: `An error has ocurred updating the price ${editingProduct.price} for '${editingProduct.title}'`,
+                });
+                setEditingProduct(undefined);
+                reload();
+            }
+        }
+    }
+
     return {
         products,
         editingProduct,
-        error,
+        message,
         priceError,
-        reload,
         updatingQuantity,
         cancelEditPrice,
-        setEditingProduct,
+        onCloseMessage,
         onChangePrice,
+        saveEditPrice,
     };
 }
 

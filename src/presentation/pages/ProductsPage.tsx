@@ -6,7 +6,7 @@ import {
     GridColDef,
     GridValueFormatterParams,
 } from "@mui/x-data-grid";
-import { ChangeEvent, useEffect, useMemo, useState } from "react";
+import { ChangeEvent, useMemo } from "react";
 import { CompositionRoot } from "../../CompositionRoot";
 import { ProductStatus } from "../../domain/Product";
 import { ConfirmationDialog } from "../components/ConfirmationDialog";
@@ -20,12 +20,6 @@ const baseColumn: Partial<GridColDef<ProductViewModel>> = {
 };
 
 export const ProductsPage: React.FC = () => {
-    /**
-     * @deprecated use error and setError instead
-     */
-    const [snackBarError, setSnackBarError] = useState<string>();
-    const [snackBarSuccess, setSnackBarSuccess] = useState<string>();
-
     const getProductByIdUseCase = useMemo(
         () => CompositionRoot.getInstance().provideGetProductByIdUseCase(),
         []
@@ -34,54 +28,25 @@ export const ProductsPage: React.FC = () => {
         () => CompositionRoot.getInstance().provideGetProductsUseCase(),
         []
     );
+    const updateProductPriceUseCase = useMemo(
+        () => CompositionRoot.getInstance().provideUpdateProductPriceUseCase(),
+        []
+    );
 
     const {
         products,
         editingProduct,
-        error,
+        message,
         priceError,
-        reload,
         updatingQuantity,
         cancelEditPrice,
-        setEditingProduct,
         onChangePrice,
-    } = useProducts(getProductsUseCase, getProductByIdUseCase);
-
-    useEffect(() => setSnackBarError(error), [error]);
+        saveEditPrice,
+        onCloseMessage,
+    } = useProducts(getProductsUseCase, getProductByIdUseCase, updateProductPriceUseCase);
 
     function handleChangePrice(event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>): void {
         onChangePrice(event.target.value);
-    }
-
-    // FIXME: Save price
-    async function saveEditPrice(): Promise<void> {
-        if (editingProduct) {
-            const storeApi = CompositionRoot.getInstance().provideStoreApi();
-            const remoteProduct = await storeApi.get(editingProduct.id);
-
-            if (!remoteProduct) return;
-
-            const editedRemoteProduct = {
-                ...remoteProduct,
-                price: Number(editingProduct.price),
-            };
-
-            try {
-                await storeApi.post(editedRemoteProduct);
-
-                setSnackBarSuccess(
-                    `Price ${editingProduct.price} for '${editingProduct.title}' updated`
-                );
-                setEditingProduct(undefined);
-                reload();
-            } catch (error) {
-                setSnackBarSuccess(
-                    `An error has ocurred updating the price ${editingProduct.price} for '${editingProduct.title}'`
-                );
-                setEditingProduct(undefined);
-                reload();
-            }
-        }
     }
 
     // FIXME: Table columns
@@ -150,7 +115,6 @@ export const ProductsPage: React.FC = () => {
         [updatingQuantity]
     );
 
-    // FIXME: Rendering component
     return (
         <Stack direction="column" sx={{ minHeight: "100vh", overflow: "scroll" }}>
             <MainAppBar />
@@ -176,20 +140,20 @@ export const ProductsPage: React.FC = () => {
 
             <Snackbar
                 anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-                open={snackBarError !== undefined}
+                open={message?.type !== undefined && message.type === "error"}
                 autoHideDuration={2000}
-                onClose={() => setSnackBarError(undefined)}
+                onClose={onCloseMessage}
             >
-                <Alert severity="error">{snackBarError}</Alert>
+                <Alert severity="error">{message?.message}</Alert>
             </Snackbar>
 
             <Snackbar
                 anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-                open={snackBarSuccess !== undefined}
+                open={message?.type !== undefined && message.type === "success"}
                 autoHideDuration={2000}
-                onClose={() => setSnackBarSuccess(undefined)}
+                onClose={onCloseMessage}
             >
-                <Alert severity="success">{snackBarSuccess}</Alert>
+                <Alert severity="success">{message?.message}</Alert>
             </Snackbar>
 
             {editingProduct && (
