@@ -14,6 +14,19 @@ export class ProductApiRepository implements ProductRepository {
         const productResponse = await this.storeApi.get(productId);
         return buildProduct(productResponse);
     }
+
+    async save(product: Product): Promise<void> {
+        const remoteProduct = await this.storeApi.get(product.id);
+
+        if (!remoteProduct) return;
+
+        const editedRemoteProduct = {
+            ...remoteProduct,
+            price: Number(product.price.value),
+        };
+
+        await this.storeApi.post(editedRemoteProduct);
+    }
 }
 
 // FIXME: Product mapping
