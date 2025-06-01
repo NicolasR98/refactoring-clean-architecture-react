@@ -8,13 +8,12 @@ import {
 } from "@mui/x-data-grid";
 import { ChangeEvent, useEffect, useMemo, useState } from "react";
 import { CompositionRoot } from "../../CompositionRoot";
-import { Product } from "../../domain/Product";
 import { ConfirmationDialog } from "../components/ConfirmationDialog";
 import { Footer } from "../components/Footer";
 import { MainAppBar } from "../components/MainAppBar";
-import { useProducts } from "./useProducts";
+import { ProductStatus, ProductViewModel, useProducts } from "./useProducts";
 
-const baseColumn: Partial<GridColDef<Product>> = {
+const baseColumn: Partial<GridColDef<ProductViewModel>> = {
     disableColumnMenu: true,
     sortable: false,
 };
@@ -25,8 +24,6 @@ export const ProductsPage: React.FC = () => {
      */
     const [snackBarError, setSnackBarError] = useState<string>();
     const [snackBarSuccess, setSnackBarSuccess] = useState<string>();
-
-    
 
     const getProductByIdUseCase = useMemo(
         () => CompositionRoot.getInstance().provideGetProductByIdUseCase(),
@@ -46,13 +43,13 @@ export const ProductsPage: React.FC = () => {
         updatingQuantity,
         cancelEditPrice,
         setEditingProduct,
-        onChangePrice
+        onChangePrice,
     } = useProducts(getProductsUseCase, getProductByIdUseCase);
 
     useEffect(() => setSnackBarError(error), [error]);
-    
+
     function handleChangePrice(event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>): void {
-        onChangePrice(event.target.value)
+        onChangePrice(event.target.value);
     }
 
     // FIXME: Save price
@@ -87,7 +84,7 @@ export const ProductsPage: React.FC = () => {
     }
 
     // FIXME: Table columns
-    const columns: GridColDef<Product>[] = useMemo(
+    const columns: GridColDef<ProductViewModel>[] = useMemo(
         () => [
             { ...baseColumn, field: "id", headerName: "ID", width: 70 },
             { ...baseColumn, field: "title", headerName: "Title", width: 600 },
@@ -125,7 +122,7 @@ export const ProductsPage: React.FC = () => {
                 headerAlign: "center",
                 align: "center",
                 renderCell: params => {
-                    const status = +params.row.price === 0 ? "inactive" : "active";
+                    const status = params.row.status;
 
                     return (
                         <StatusContainer status={status}>
@@ -161,7 +158,7 @@ export const ProductsPage: React.FC = () => {
                 <Typography variant="h3" component="h1" gutterBottom>
                     {"Product price updater"}
                 </Typography>
-                <DataGrid<Product>
+                <DataGrid<ProductViewModel>
                     columnBuffer={10}
                     rowHeight={300}
                     rows={products}
@@ -235,8 +232,6 @@ const ProductImage = styled.img`
     object-fit: contain;
 `;
 
-type ProductStatus = "active" | "inactive";
-
 const StatusContainer = styled.div<{ status: ProductStatus }>`
     background: ${props => (props.status === "inactive" ? "red" : "green")};
     display: flex;
@@ -247,5 +242,3 @@ const StatusContainer = styled.div<{ status: ProductStatus }>`
     border-radius: 20px;
     width: 100px;
 `;
-
-

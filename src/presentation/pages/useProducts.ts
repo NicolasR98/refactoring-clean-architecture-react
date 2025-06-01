@@ -7,14 +7,18 @@ import { Product } from "../../domain/Product";
 import { useAppContext } from "../context/useAppContext";
 import { useReload } from "../hooks/useReload";
 
+export type ProductStatus = "active" | "inactive";
+
+export type ProductViewModel = Product & { status: ProductStatus };
+
 export function useProducts(
     getProductsUseCase: GetProductsUseCase,
     getProducByIdUseCase: GetProductByIdUseCase
 ) {
     const { currentUser } = useAppContext();
 
-    const [products, setProducts] = useState<Product[]>([]);
-    const [editingProduct, setEditingProduct] = useState<Product | undefined>(undefined);
+    const [products, setProducts] = useState<ProductViewModel[]>([]);
+    const [editingProduct, setEditingProduct] = useState<ProductViewModel | undefined>(undefined);
     const [error, setError] = useState<string>();
     const [priceError, setPriceError] = useState<string | undefined>(undefined);
 
@@ -23,7 +27,7 @@ export function useProducts(
     useEffect(() => {
         getProductsUseCase.execute().then(products => {
             console.debug("Reloading", reloadKey);
-            setProducts(products);
+            setProducts(products.map(buildProductViewModel));
         });
     }, [getProductsUseCase, reloadKey]);
 
@@ -54,7 +58,7 @@ export function useProducts(
 
                 try {
                     const product = await getProducByIdUseCase.execute(id);
-                    setEditingProduct(product);
+                    setEditingProduct(buildProductViewModel(product));
                 } catch (error) {
                     if (error instanceof ResourceNotFoundError) {
                         setError(error.message);
@@ -95,5 +99,12 @@ export function buildProduct(remoteProduct: RemoteProduct): Product {
             maximumFractionDigits: 2,
             minimumFractionDigits: 2,
         }),
+    };
+}
+
+export function buildProductViewModel(product: Product): ProductViewModel {
+    return {
+        ...product,
+        status: +product.price === 0 ? "inactive" : "active",
     };
 }
